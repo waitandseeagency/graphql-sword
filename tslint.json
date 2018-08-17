@@ -1,0 +1,23 @@
+{
+  "extends": [
+    "tslint-config-airbnb",
+    "tslint-eslint-rules"
+  ],
+  "linterOptions": {
+    "exclude": ["src/generated/*.ts"]
+  },
+  "rules": {
+    "semicolon": false,
+    "variable-name": false,
+    "no-console": [true, "log"],
+    "max-line-length": false,
+    "import-name": false,
+    "ter-max-len": [
+      true,
+      {
+        "code": 80,
+        "ignoreComments": true
+      }
+    ]
+  }
+}
