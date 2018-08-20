@@ -21,7 +21,7 @@ export const defaultAuthenticatedRule: PermissionRule = (
   rule({
     cache,
   })(async (_, args, ctx) => {
-    const user = ctx.user
+    const user = ctx.user || ctx.req.user
     if (!user || !user.id) {
       throw new AuthenticationError()
     }

@@ -8,6 +8,7 @@ export interface Permission {
   fields?: string[]
   rule?: PermissionRule,
   query?: PermissionQuery,
+  cache: ICacheOptions,
 }
 
 export interface PermissionRule {
@@ -25,6 +26,6 @@ export interface PermissionArgs {
 export type PermissionQuery = (ctx: any, T: any) => void | any
 
 export interface Options {
-  debug: boolean
-  authenticatedDefault: PermissionRule
+  debug?: boolean
+  authenticatedDefault?: PermissionRule
 }

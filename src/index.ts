@@ -5,7 +5,7 @@ import { validatePermissions } from './permissions'
 import { Options, Permission } from './types'
 import { defaultAuthenticatedRule } from './utils'
 
-function normalizeOptions(options: Options): Options {
+function normalizeOptions(options: Options = {}): Options {
   return {
     debug: options.debug !== undefined ? options.debug : false, // allowExternalErrors:
     //   options.allowExternalErrors !== undefined

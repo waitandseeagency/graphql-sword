@@ -1,7 +1,8 @@
 import { GraphQLSchema } from 'graphql'
-import { shield, rule, Rule, allow } from 'graphql-shield'
-import { Permission, Options } from './types'
+import { shield, Rule, allow } from 'graphql-shield'
+import pluralize from 'pluralize'
 
+import { Permission, Options } from './types'
 import { checkAuthenticated } from './utils'
 
 const extractPermissions = (permissions: Permission[], options: Options) => {
@@ -11,9 +12,10 @@ const extractPermissions = (permissions: Permission[], options: Options) => {
         operation,
         alias = '',
         authenticated = false,
-        fields = [],
         rule = (T: any): Rule => allow,
+        fields = [],
         query = (): void => {},
+        cache = 'contextual',
       } = permission
 
       if (!authenticated && !alias && !fields.length && !permission.rule) {
@@ -41,18 +43,18 @@ const extractPermissions = (permissions: Permission[], options: Options) => {
       switch (operationRule[2]) {
         case 'Read': {
           // Query
-          const operationName = alias ? alias : type
+          const operationName = alias ? alias : type.toLowerCase()
           acc.Query[operationName] = checkAuthenticated(
             authenticated,
             options.authenticatedDefault(),
-            rule({ query }),
+            rule({ query, fields }),
           )
           break
         }
         case 'Browse': {
           // Query
           // TODO add pluralize package
-          const operationName = alias ? alias : `${type.toLowerCase()}s`
+          const operationName = alias ? alias : pluralize(type.toLowerCase())
           acc.Query[operationName] = checkAuthenticated(
             authenticated,
             options.authenticatedDefault(),
@@ -66,7 +68,7 @@ const extractPermissions = (permissions: Permission[], options: Options) => {
           acc.Mutation[operationName] = checkAuthenticated(
             authenticated,
             options.authenticatedDefault(),
-            rule({ query, fields }),
+            rule({ query, fields, cache }),
           )
           break
         }
@@ -76,7 +78,7 @@ const extractPermissions = (permissions: Permission[], options: Options) => {
           acc.Mutation[operationName] = checkAuthenticated(
             authenticated,
             options.authenticatedDefault(),
-            rule({ query, fields }),
+            rule({ query, fields, cache }),
           )
           break
         }
@@ -86,7 +88,7 @@ const extractPermissions = (permissions: Permission[], options: Options) => {
           acc.Mutation[operationName] = checkAuthenticated(
             authenticated,
             options.authenticatedDefault(),
-            rule({ query, fields }),
+            rule({ query, fields, cache }),
           )
           break
         }
