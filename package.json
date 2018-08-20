@@ -1,6 +1,6 @@
 {
   "name": "graphql-middleware-permissions-layer",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Add a permission layer to your GraphQL Server with graphql-shield",
   "main": "dist/index.js",
   "scripts": {
