@@ -1,6 +1,6 @@
 import { GraphQLSchema } from 'graphql'
-import { shield, Rule, allow } from 'graphql-shield'
-import pluralize from 'pluralize'
+import { shield } from 'graphql-shield'
+import * as pluralize from 'pluralize'
 
 import { wrapRules } from './rules';
 import { extractOperationsName, setObjectPath } from './helpers'

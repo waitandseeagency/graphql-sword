@@ -1,4 +1,4 @@
-import { GraphQLResolveInfo, print } from 'graphql'
+import { GraphQLResolveInfo } from 'graphql'
 import { and, rule, Rule, LogicRule } from 'graphql-shield'
 
 import { parseOperationFieldsFromAST } from './helpers'
