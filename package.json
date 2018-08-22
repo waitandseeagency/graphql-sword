@@ -1,6 +1,6 @@
 {
   "name": "graphql-sword",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Add a permission layer to your GraphQL Server with graphql-shield",
   "main": "dist/index.js",
   "scripts": {
