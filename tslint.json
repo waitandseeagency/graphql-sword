@@ -3,9 +3,6 @@
     "tslint-config-airbnb",
     "tslint-eslint-rules"
   ],
-  "linterOptions": {
-    "exclude": ["src/generated/*.ts"]
-  },
   "rules": {
     "semicolon": false,
     "variable-name": false,
