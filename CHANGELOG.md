@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="0.2.0"></a>
+# [0.2.0](https://github.com/waitandseeagency/graphql-middleware-permissions-layer/compare/v0.1.1...v0.2.0) (2018-08-22)
+
+
+### Bug Fixes
+
+* **deps:** tslint-config-airbnb@5.10.0 ([f5592f7](https://github.com/waitandseeagency/graphql-middleware-permissions-layer/commit/f5592f7))
+
+
+### Features
+
+* **permissions:** review wrapping rules logic ([204078c](https://github.com/waitandseeagency/graphql-middleware-permissions-layer/commit/204078c))
+
+
+
 <a name="0.1.1"></a>
 ## [0.1.1](https://github.com/waitandseeagency/graphql-middleware-permissions-layer/compare/v0.1.0...v0.1.1) (2018-08-20)
 
