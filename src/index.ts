@@ -2,15 +2,14 @@ import { GraphQLSchema } from 'graphql'
 import { middleware } from 'graphql-middleware'
 
 import { validatePermissions } from './permissions'
-import { Options, Permission } from './types'
-import { defaultAuthenticatedRule } from './utils'
+import { defaultAuthenticatedRule } from './helpers'
+import { IOptions, IPermission } from './types'
 
-function normalizeOptions(options: Options = {}): Options {
+export { IPermission }
+
+function normalizeOptions(options: IOptions = {}): IOptions {
   return {
-    debug: options.debug !== undefined ? options.debug : false, // allowExternalErrors:
-    //   options.allowExternalErrors !== undefined
-    //     ? options.allowExternalErrors
-    //     : false,
+    debug: options.debug !== undefined ? options.debug : false,
     authenticatedDefault:
       options.authenticatedDefault !== undefined
         ? options.authenticatedDefault
@@ -19,8 +18,8 @@ function normalizeOptions(options: Options = {}): Options {
 }
 
 export function permissions(
-  permissionsRules: Permission[],
-  _options?: Options,
+  permissionsRules: IPermission[],
+  _options?: IOptions,
 ) {
   return middleware((schema: GraphQLSchema) => {
     const options = normalizeOptions(_options)

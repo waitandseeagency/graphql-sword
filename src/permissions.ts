@@ -2,12 +2,35 @@ import { GraphQLSchema } from 'graphql'
 import { shield, Rule, allow } from 'graphql-shield'
 import pluralize from 'pluralize'
 
-import { Permission, Options } from './types'
-import { checkAuthenticated } from './utils'
+import { IPermission, IOperations, IOptions, IAction } from './types'
+import {
+  checkAuthenticated,
+  extractOperationsName,
+  setObjectPath,
+} from './helpers'
 
-const extractPermissions = (permissions: Permission[], options: Options) => {
+export const validatePermissions = (
+  schema: GraphQLSchema,
+  permissions: IPermission[],
+  options: IOptions,
+) => {
+  return shield(
+    extractPermissions(
+      permissions,
+      extractOperationsName(schema),
+      options,
+    ),
+    { allowExternalErrors: true },
+  )
+}
+
+const extractPermissions = (
+  permissions: IPermission[],
+  schemaOperations: IOperations,
+  options: IOptions,
+) => {
   return permissions.reduce(
-    (acc, permission) => {
+    (acc: IOperations, permissionConfig: IPermission) => {
       const {
         operation,
         alias = '',
@@ -15,18 +38,26 @@ const extractPermissions = (permissions: Permission[], options: Options) => {
         rule = (T: any): Rule => allow,
         fields = [],
         query = (): void => {},
-        cache = 'contextual',
-      } = permission
+        cache = 'strict',
+      } = permissionConfig
 
-      if (!authenticated && !alias && !fields.length && !permission.rule) {
+      if (
+        !authenticated &&
+        !alias &&
+        !fields.length &&
+        !permissionConfig.rule
+      ) {
         throw new Error(
           'A permission requires at least one permission, alias' +
             ` or fields args for operation ${operation}`,
         )
       }
 
+      // TODO v2 authorize CRUD naming
+      // const regex = /(.*)\.(Create|Read|Update|Delete|\*)/
+
       // Validate the operation type
-      const regex = /(.*)\.(Read|Browse|Edit|Add|Delete)/
+      const regex = /(.*)\.(Browse|Read|Edit|Add|Delete|\*)/
       const operationRule = operation.match(regex)
 
       if (!operationRule) {
@@ -35,77 +66,115 @@ const extractPermissions = (permissions: Permission[], options: Options) => {
         )
       }
 
-      const type: string = operationRule[1]
-      if (fields && fields.length > 0 && !acc[type]) {
-        acc[type] = {}
-      }
+      const [/* complete regex */, type, action] = operationRule
 
-      switch (operationRule[2]) {
-        case 'Read': {
-          // Query
-          const operationName = alias ? alias : type.toLowerCase()
-          acc.Query[operationName] = checkAuthenticated(
-            authenticated,
-            options.authenticatedDefault(),
-            rule({ query, fields }),
+      if (type === 'Query' || type === 'Mutation') {
+        if (action !== 'Browse' || !alias) {
+          throw new Error(
+            `The operation ${operation} must use \`Browse\` as action ` +
+            'and specify at least one alias',
           )
-          break
         }
-        case 'Browse': {
-          // Query
-          // TODO add pluralize package
-          const operationName = alias ? alias : pluralize(type.toLowerCase())
-          acc.Query[operationName] = checkAuthenticated(
-            authenticated,
-            options.authenticatedDefault(),
-            rule({ query, cache: 'strict' }),
+      } else {
+        // TODO v1.1 Reformat init model rule
+        if (((fields && fields.length > 0) || true) && !acc[type]) {
+          acc[type] = {}
+        }
+
+        let operationName: string
+        let operationFullName: string
+        let existInSchema: boolean = true
+
+        switch (action) {
+          case 'Browse': {
+            // Query
+            operationName = alias
+              ? alias
+              : pluralize(type.replace(/^\w/, c => c.toLowerCase()))
+            operationFullName = `Query.${operationName}`
+            existInSchema = Object.keys(schemaOperations.Query).some(
+              (operation: string) => operation === operationName,
+            )
+            break
+          }
+          case 'Read': {
+            // Query
+            operationName = alias
+              ? alias
+              : type.replace(/^\w/, c => c.toLowerCase())
+            operationFullName = `Query.${operationName}`;
+            existInSchema = Object.keys(schemaOperations.Query).some(
+              (operation: string) => operation === operationName,
+            )
+            break
+          }
+          case 'Edit': {
+            // Mutation
+            operationName = alias
+              ? alias
+              : `edit${type}`
+            operationFullName = `Mutation.${operationName}`
+            existInSchema = Object.keys(schemaOperations.Mutation).some(
+              (operation: string) => operation === operationName,
+            )
+            break
+          }
+          case 'Add': {
+            // Mutation
+            operationName = alias
+              ? alias
+              : `add${type}`
+            operationFullName = `Mutation.${operationName}`
+            existInSchema = Object.keys(schemaOperations.Mutation).some(
+              (operation: string) => operation === operationName,
+            )
+            break
+          }
+          case 'Delete': {
+            // Mutation
+            if (fields && fields.length > 0) {
+              throw new Error(
+                'Fields cannot be passed for the \`Delete\` action' +
+                ` on the operation ${operation}`,
+              )
+            }
+
+            operationName = alias
+              ? alias
+              : `delete${type}`
+            operationFullName = `Mutation.${operationName}`
+            existInSchema = Object.keys(schemaOperations.Mutation).some(
+              (operation: string) => operation === operationName,
+            )
+            break
+          }
+          case '*': {
+            operationFullName = type
+            break
+          }
+          default: {
+            throw new Error(
+              `Wrong permission name, please verify the opertaion ${operation}`,
+            )
+          }
+        }
+
+        if (!existInSchema) {
+          throw new Error(
+            `No default resolver find for the operation ${operation}, ` +
+            'verify your schema or add an alias on the permission',
           )
-          break
         }
-        case 'Edit': {
-          // Mutation
-          const operationName = alias ? alias : `update${type}`
-          acc.Mutation[operationName] = checkAuthenticated(
-            authenticated,
-            options.authenticatedDefault(),
-            rule({ query, fields, cache }),
-          )
-          break
-        }
-        case 'Add': {
-          // Mutation
-          const operationName = alias ? alias : `create${type}`
-          acc.Mutation[operationName] = checkAuthenticated(
-            authenticated,
-            options.authenticatedDefault(),
-            rule({ query, fields, cache }),
-          )
-          break
-        }
-        case 'Delete': {
-          // Mutation
-          const operationName = alias ? alias : `delete${type}`
-          acc.Mutation[operationName] = checkAuthenticated(
-            authenticated,
-            options.authenticatedDefault(),
-            rule({ query, fields, cache }),
-          )
-          break
-        }
+
+        setObjectPath(acc, operationFullName, checkAuthenticated(
+          authenticated,
+          options.authenticatedDefault(),
+          rule({ query, fields, cache, action }),
+        ))
       }
 
       return acc
     },
     { Query: {}, Mutation: {} },
   )
-}
-
-export const validatePermissions = (
-  schema: GraphQLSchema,
-  permissions: Permission[],
-  options: Options,
-) => {
-  return shield(extractPermissions(permissions, options), {
-    allowExternalErrors: true,
-  })
 }
