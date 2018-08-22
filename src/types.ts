@@ -7,9 +7,9 @@ export type ICache = ICacheOptions
 export interface IPermission {
   operation: string
   authenticated?: boolean
-  alias?: string // TODO v2 string | string[]
+  alias?: string // TODO: v2 string | string[]
   fields?: string[]
-  rule?: IPermissionRule
+  // rule?: IPermissionRule
   query?: IPermissionQuery
   cache?: ICacheOptions
 }
@@ -27,7 +27,7 @@ export interface IPermissionArgs {
   action?: IAction
 }
 
-export type IPermissionQuery = (ctx: any, T: any) => void | any
+export type IPermissionQuery = (ctx: any, T: any) => Promise<boolean>
 
 export interface IOptions {
   debug?: boolean

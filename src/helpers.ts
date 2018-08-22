@@ -1,5 +1,3 @@
-import { ApolloError } from 'apollo-server-errors'
-import { Rule, rule, LogicRule, and } from 'graphql-shield'
 import {
   GraphQLSchema,
   FieldDefinitionNode,
@@ -8,43 +6,6 @@ import {
   SelectionNode,
   print,
 } from 'graphql'
-
-import { IPermissionRule, ICache } from './types'
-
-// Extends default Apollo error
-export class AuthenticationError extends ApolloError {
-  constructor(
-    message: string = 'Not authenticated.',
-    properties?: Record<any, any>,
-  ) {
-    super(message, 'UNAUTHENTICATED', properties)
-    Object.defineProperty(this, 'name', { value: 'AuthenticationError' })
-  }
-}
-
-export const defaultAuthenticatedRule: IPermissionRule = (
-  { cache }: { cache: ICache } = { cache: 'contextual' },
-): Rule =>
-  rule({
-    cache,
-  })(async (_, args, ctx) => {
-    const user = ctx.user || ctx.req.user
-    if (!user || !user.id) {
-      throw new AuthenticationError()
-    }
-    return true
-  })
-
-export const checkAuthenticated = (
-  authenticated: boolean,
-  isAuthenticated: Rule,
-  rule: Rule,
-): LogicRule | Rule => {
-  if (authenticated) {
-    return and(isAuthenticated, rule)
-  }
-  return rule
-}
 
 export const parseOperationFieldsFromAST = (
   operation: OperationDefinitionNode,
@@ -88,7 +49,7 @@ export const extractOperationsName = (schema: GraphQLSchema) => {
 }
 
 // https://stackoverflow.com/a/43849204
-export const setObjectPath = (object, path: string, value) => path
+export const setObjectPath = (object, path: string, value): object => path
   .split('.')
   .reduce(
     (o, p) => {

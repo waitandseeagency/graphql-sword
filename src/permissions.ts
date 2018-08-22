@@ -2,12 +2,9 @@ import { GraphQLSchema } from 'graphql'
 import { shield, Rule, allow } from 'graphql-shield'
 import pluralize from 'pluralize'
 
-import { IPermission, IOperations, IOptions, IAction } from './types'
-import {
-  checkAuthenticated,
-  extractOperationsName,
-  setObjectPath,
-} from './helpers'
+import { wrapRules } from './rules';
+import { extractOperationsName, setObjectPath } from './helpers'
+import { IPermission, IOperations, IOptions } from './types'
 
 export const validatePermissions = (
   schema: GraphQLSchema,
@@ -35,9 +32,9 @@ const extractPermissions = (
         operation,
         alias = '',
         authenticated = false,
-        rule = (T: any): Rule => allow,
         fields = [],
-        query = (): void => {},
+        // rule, // = (T: any): Rule => allow,
+        query, // = (): void => {},
         cache = 'strict',
       } = permissionConfig
 
@@ -45,7 +42,7 @@ const extractPermissions = (
         !authenticated &&
         !alias &&
         !fields.length &&
-        !permissionConfig.rule
+        !query
       ) {
         throw new Error(
           'A permission requires at least one permission, alias' +
@@ -53,7 +50,7 @@ const extractPermissions = (
         )
       }
 
-      // TODO v2 authorize CRUD naming
+      // TODO: v2 authorize CRUD naming
       // const regex = /(.*)\.(Create|Read|Update|Delete|\*)/
 
       // Validate the operation type
@@ -76,7 +73,7 @@ const extractPermissions = (
           )
         }
       } else {
-        // TODO v1.1 Reformat init model rule
+        // TODO: v1.1 Reformat init model rule
         if (((fields && fields.length > 0) || true) && !acc[type]) {
           acc[type] = {}
         }
@@ -166,11 +163,15 @@ const extractPermissions = (
           )
         }
 
-        setObjectPath(acc, operationFullName, checkAuthenticated(
-          authenticated,
-          options.authenticatedDefault(),
-          rule({ query, fields, cache, action }),
-        ))
+        setObjectPath(
+          acc,
+          operationFullName,
+          wrapRules(
+            authenticated,
+            options.authenticatedRule(),
+            { query, fields, cache, action },
+          ),
+        )
       }
 
       return acc
