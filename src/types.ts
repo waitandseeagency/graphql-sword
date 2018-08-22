@@ -9,9 +9,9 @@ export interface IPermission {
   authenticated?: boolean
   alias?: string // TODO: v2 string | string[]
   fields?: string[]
-  // rule?: IPermissionRule
   query?: IPermissionQuery
   cache?: ICacheOptions
+  // exception?: string[] // TODO: v2
 }
 
 export interface IPermissionRule {
@@ -31,7 +31,7 @@ export type IPermissionQuery = (ctx: any, T: any) => Promise<boolean>
 
 export interface IOptions {
   debug?: boolean
-  authenticatedDefault?: IPermissionRule
+  authenticatedRule?: IPermissionRule
 }
 
 export interface IOperations {
