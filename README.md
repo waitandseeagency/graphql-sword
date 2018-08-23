@@ -2,7 +2,7 @@
 <img width="200" src="https://raw.githubusercontent.com/waitandseeagency/graphql-sword/master/media/logo.svg?sanitize=true" alt="logo graphql-sword">
 </p>
 
-# graphql-middleware-permission-layer
+# GraphQL Sword
 > The perfect companion of `graphql-shield` to manage your permission layer following BREAD convention
 <br>
 
@@ -10,7 +10,7 @@
 * [Installation](#installation)
 * [Usage](#usage)
 * [API](#api)
-* [Licence](#licence)
+* [Roadmap](#roadmap)
 
 
 ## Overview
@@ -26,12 +26,12 @@ The actual behavior is so inspired by the permissions logic from GCF (akak Graph
 yarn add graphql-sword graphql-middleware
 ```
 
-
 ## Usage
-### Apollo Server v2
+### Apollo Server v2 (basic implementation)
 
 ```ts
 import * as express from 'express'
+import * as jwt from 'jsonwebtoken'
 import { ApolloServer } from 'apollo-server-express'
 import { makeExecutableSchema } from 'graphql-tools'
 import { applyMiddleware } from 'graphql-middleware'
@@ -137,6 +137,10 @@ const server = new ApolloServer({
   }),
 })
 
+// Add some code here to handle JWT / context.user
+// See some example from `prisma`, `graphql-yoga`, `apollo-server`
+// or `graphql-authentication` repositories
+
 server.applyMiddleware({ app, path: '/' });
 
 app
@@ -203,13 +207,57 @@ It will be available later to apply it on a type or field.
 Permissions are appended to a query directly to enforce the validation before the server make the request.
 If you apply the `fields` options to a permission, it will also monitor it before the request.
 
-But if the permission was apply to a type (or one of its fields), the verification will be done on the response of the request (so the result of the `resolver`), because the `resolver` need to populate the `parent` parameter.
+Because when a permission is applied to a type (or one of its fields), the verification will be done on the response of the request (so the result of the `resolver`), because the `resolver` need to populate the `parent` parameter from `(parent, args, context, info) => { ... }`.
 
 ##### Possibilities
 
-More example are coming...
+More example are availabe [here](https://github.com/waitandseeagency/graphql-sword/blob/master/DEMO.md).
+
+
+#### `options`
+| Property          | Required | Default                  | Description                              |
+| ----------------- | -------- | ------------------------ | ---------------------------------------- |
+| debug             | false    | false                    | Enable debug mode for `graphql-shield`.  |
+| authenticatedRule | false    | defaultAuthenticatedRule | Allow the specify a custom rule for <br> the validtion of the `authencated` option |
+
+By default, `graphql-sword` control the `authenticated` option by checking if `user` and `user.id` properties are available inside the context. The `user` property is actullay set during the initialization of the GraphQL Server.<br>
+In the example given above, the `user` is set from `ctx.req` which represent the `Request` object from `express` handled by `apollo-server`.<br>
+For example, with `graphql-yoga`, it must be get from `ctx.request`. But you can also add your own logic to get the `user` from a JWT token or the server session.
 
 <br>
+
+## Roadmap
+
+### V1.1
+* Improve fields checking for the input args for `Add` and `Edit` action, instead of the output fields
+
+### V1.2
+* Manage overrided permissions with `or()` rule from `graph-shield`<br>
+this problem can happen with this config, because there is 2 permissions which result on the same request name<br>
+  ```ts
+  {
+    operation: 'User.Read',
+    authenticated: true
+  },
+  {
+    operation: 'User.Read',
+    query: isOwner,
+  }
+  ```
+* Think about an `deny` option to reflect of the `not()` rule from `graphql-shield`
+* Think about an `group` option to reflect of the `and()` rule from `graphql-shield`
+
+### V1.3
+* Allow CRUD keywords (`Create`, `Read`, `Update`, `Delete`) to generate default resolver name like `createUser` or `updateUser`
+* Allow string array for `alias` option to apply the same permission on several queries
+
+### V2
+* Allow to apply a permission on a type directly (and not only to the operation `Query` or `Mutation`)
+* Will need to use fragments on the resolvers with the release of `graphql-shield v3`
+* Add the option `exclude: string[]` to the model permission to add an expection on some request
+
+### VX (roadmap to be determined)
+* Allow to override the `defaultRule` applied when the option `query` is used (surely with an option `rule`) 
 
 ## Licence
 
