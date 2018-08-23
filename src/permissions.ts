@@ -17,7 +17,10 @@ export const validatePermissions = (
       extractOperationsName(schema),
       options,
     ),
-    { allowExternalErrors: true },
+    {
+      debug: options.debug,
+      allowExternalErrors: true,
+    },
   )
 }
 
@@ -50,7 +53,7 @@ const extractPermissions = (
         )
       }
 
-      // TODO: v2 authorize CRUD naming
+      // TODO: v1.2 authorize CRUD naming
       // const regex = /(.*)\.(Create|Read|Update|Delete|\*)/
 
       // Validate the operation type

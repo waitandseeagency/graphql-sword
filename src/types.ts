@@ -7,7 +7,7 @@ export type ICache = ICacheOptions
 export interface IPermission {
   operation: string
   authenticated?: boolean
-  alias?: string // TODO: v2 string | string[]
+  alias?: string // TODO: v1.2 string | string[]
   fields?: string[]
   query?: IPermissionQuery
   cache?: ICacheOptions
