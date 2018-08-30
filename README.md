@@ -3,6 +3,11 @@
 </p>
 
 # GraphQL Sword
+[![npm version](https://badge.fury.io/js/graphql-sword.svg)](https://badge.fury.io/js/graphql-sword)
+<br>
+[![Commitizen friendly](https://img.shields.io/badge/commitizen-friendly-blue.svg)](http://commitizen.github.io/cz-cli/)
+
+
 > The perfect companion of `graphql-shield` to manage your permission layer following BREAD convention
 <br>
 
@@ -192,7 +197,6 @@ interface IPermissionArgs {
 }
 ```
 
-### `shield(rules?, options?)`
 ### `permissions(permissionsRules, options?)`
 
 > Generates GraphQL Middleware layer from your permissions.
