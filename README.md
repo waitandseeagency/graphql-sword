@@ -22,7 +22,7 @@
 
 GraphQL Sword is a middleware for a GraphQL Server which helps you create a permission layer with `graphql-shield`, but following the BREAD permission structure.
 <br>
-The actual behavior is so inspired by the permissions logic from GCF (akak GraphCool Framework).
+The actual behavior is so inspired by the permissions logic from GCF (aka GraphCool Framework).
 
 
 ## Installation

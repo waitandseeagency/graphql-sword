@@ -32,7 +32,7 @@ Query.me() { ... }
 // Permission
 {
   operation: 'User.Read',
-  field: ['email'],
+  fields: ['email'],
 }
 
 // Rule apply on
@@ -44,7 +44,7 @@ Query.user() { email }
 {
   operation: 'User.Read',
   alias: 'me',
-  field: ['email'],
+  fields: ['email'],
 }
 
 // Rule apply on
@@ -78,7 +78,7 @@ Query.allUsers() { ... }
 // Permission
 {
   operation: 'User.Browse',
-  field: ['email'],
+  fields: ['email'],
 }
 
 // Rule apply on
@@ -90,7 +90,7 @@ Query.users() { email }
 {
   operation: 'User.Browse',
   alias: 'allUsers',
-  field: ['email'],
+  fields: ['email'],
 }
 
 // Rule apply on
@@ -124,7 +124,7 @@ Query.signup() { ... }
 // Permission
 {
   operation: 'User.Add',
-  field: ['email'],
+  fields: ['email'],
 }
 
 // Rule apply on
@@ -136,7 +136,7 @@ Query.addUser(data: { email }) { ... }
 {
   operation: 'User.Add',
   alias: 'signup',
-  field: ['email'],
+  fields: ['email'],
 }
 
 // Rule apply on
@@ -170,11 +170,11 @@ Query.editCurrentUser(data: { ... }, where: { ... }) { ... }
 // Permission
 {
   operation: 'User.Edit',
-  field: ['email'],
+  fields: ['email'],
 }
 
 // Rule apply on
-Query.editUser(data: { ... }, where: { email }) { ... }
+Query.editUser(data: { email, ... }, where: { ... }) { ... }
 ```
 
 ```ts
@@ -182,11 +182,11 @@ Query.editUser(data: { ... }, where: { email }) { ... }
 {
   operation: 'User.Edit',
   alias: 'editCurrentUser',
-  field: ['email'],
+  fields: ['email'],
 }
 
 // Rule apply on
-Query.editCurrentUser(data: { ... }, where: { email }) { ... }
+Query.editCurrentUser(data: { email, ... }, where: { ... }) { ... }
 ```
 <br>
 
@@ -216,7 +216,7 @@ Query.removeUser(where: { ... }) { ... }
 // Permission
 {
   operation: 'User.Delete',
-  field: ['email'],
+  fields: ['email'],
 }
 
 // Throw an Error because you can't apply the option `email` to the `Delete` action
@@ -227,7 +227,7 @@ Query.removeUser(where: { ... }) { ... }
 {
   operation: 'User.Delete',
   alias: 'removeUser',
-  field: ['email'],
+  fields: ['email'],
 }
 
 // Throw an Error because you can't apply the option `email` to the `Delete` action
@@ -249,19 +249,19 @@ User { ... }
 // Permission
 {
   operation: 'User.*',
-  alias: 'removeUser',
+  fields: ['email'],
 }
 
-// Throw an Error because you can't apply the option `alias` to the `*` action
+// Rule apply on
+User { email }
 ```
 
 ```ts
 // Permission
 {
   operation: 'User.*',
-  field: ['email'],
+  alias: 'removeUser',
 }
 
-// Rule apply on
-User { email }
+// Throw an Error because you can't apply the option `alias` to the `*` action
 ```
