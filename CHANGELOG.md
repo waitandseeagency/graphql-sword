@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="1.1.0"></a>
+# [1.1.0](https://github.com/waitandseeagency/graphql-sword/compare/v1.0.2...v1.1.0) (2018-09-05)
+
+
+### Features
+
+* **permissions:** allow multiple rules on a same operation ([671bce1](https://github.com/waitandseeagency/graphql-sword/commit/671bce1))
+
+
+
 <a name="1.0.2"></a>
 ## [1.0.2](https://github.com/waitandseeagency/graphql-sword/compare/v1.0.1...v1.0.2) (2018-08-23)
 
