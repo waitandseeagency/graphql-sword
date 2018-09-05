@@ -1,9 +1,9 @@
 import { GraphQLSchema } from 'graphql'
-import { shield } from 'graphql-shield'
+import { shield, or } from 'graphql-shield'
 import * as pluralize from 'pluralize'
 
 import { wrapRules } from './rules';
-import { extractOperationsName, setObjectPath } from './helpers'
+import { extractOperationsName } from './helpers'
 import { IPermission, IOperations, IOptions } from './types'
 
 export const validatePermissions = (
@@ -29,7 +29,7 @@ const extractPermissions = (
   schemaOperations: IOperations,
   options: IOptions,
 ) => {
-  return permissions.reduce(
+  const operations = permissions.reduce(
     (acc: IOperations, permissionConfig: IPermission) => {
       const {
         operation,
@@ -77,61 +77,47 @@ const extractPermissions = (
         }
       } else {
         // TODO: v1.1 Reformat init model rule
-        if (((fields && fields.length > 0) || true) && !acc[type]) {
-          acc[type] = {}
-        }
+        // if (((fields && fields.length > 0) || true) && !acc[type]) {
+        //   acc[type] = {} || []
+        // }
 
+        let operationType: string
         let operationName: string
-        let operationFullName: string
-        let existInSchema: boolean = true
 
         switch (action) {
           case 'Browse': {
-            // Query
+            operationType = 'Query'
             operationName = alias
               ? alias
               : pluralize(type.replace(/^\w/, c => c.toLowerCase()))
-            operationFullName = `Query.${operationName}`
-            existInSchema = Object.keys(schemaOperations.Query).some(
-              (operation: string) => operation === operationName,
-            )
+
             break
           }
           case 'Read': {
-            // Query
+            operationType = 'Query'
             operationName = alias
               ? alias
               : type.replace(/^\w/, c => c.toLowerCase())
-            operationFullName = `Query.${operationName}`;
-            existInSchema = Object.keys(schemaOperations.Query).some(
-              (operation: string) => operation === operationName,
-            )
+
             break
           }
           case 'Edit': {
-            // Mutation
+            operationType = 'Mutation'
             operationName = alias
               ? alias
               : `edit${type}`
-            operationFullName = `Mutation.${operationName}`
-            existInSchema = Object.keys(schemaOperations.Mutation).some(
-              (operation: string) => operation === operationName,
-            )
+
             break
           }
           case 'Add': {
-            // Mutation
+            operationType = 'Mutation'
             operationName = alias
               ? alias
               : `add${type}`
-            operationFullName = `Mutation.${operationName}`
-            existInSchema = Object.keys(schemaOperations.Mutation).some(
-              (operation: string) => operation === operationName,
-            )
+
             break
           }
           case 'Delete': {
-            // Mutation
             if (fields && fields.length > 0) {
               throw new Error(
                 'Fields cannot be passed for the \`Delete\` action' +
@@ -139,17 +125,15 @@ const extractPermissions = (
               )
             }
 
+            operationType = 'Mutation'
             operationName = alias
               ? alias
               : `delete${type}`
-            operationFullName = `Mutation.${operationName}`
-            existInSchema = Object.keys(schemaOperations.Mutation).some(
-              (operation: string) => operation === operationName,
-            )
+
             break
           }
           case '*': {
-            operationFullName = type
+            operationType = type
             break
           }
           default: {
@@ -159,26 +143,58 @@ const extractPermissions = (
           }
         }
 
-        if (!existInSchema) {
-          throw new Error(
-            `No default resolver find for the operation ${operation}, ` +
-            'verify your schema or add an alias on the permission',
+        if (operationName) {
+          const operationExistInSchema: boolean = Object
+            .keys(schemaOperations[operationType])
+            .some((operation: string) => operation === operationName)
+
+          if (!operationExistInSchema) {
+            throw new Error(
+              `No default resolver find for the operation ${operation}, ` +
+              'verify your schema or add an alias on the permission',
+            )
+          }
+
+          if (!acc[operationType][operationName]) {
+            acc[operationType][operationName] = []
+          }
+
+          acc[operationType][operationName].push(
+            wrapRules(
+              authenticated,
+              options.authenticatedRule(),
+              { query, fields, cache, action },
+            ),
           )
         }
-
-        setObjectPath(
-          acc,
-          operationFullName,
-          wrapRules(
-            authenticated,
-            options.authenticatedRule(),
-            { query, fields, cache, action },
-          ),
-        )
       }
 
       return acc
     },
     { Query: {}, Mutation: {} },
+  )
+
+  return Object.keys(operations).reduce(
+    (acc: IOperations, key: string) => {
+      if (key === 'Query' || key === 'Mutation') {
+        acc[key] = Object.keys(operations[key]).reduce(
+          (queries, name) => {
+            queries[name] = operations[key][name].length > 1
+              ? or(...operations[key][name])
+              : operations[key][name][0]
+
+            return queries
+          },
+          {},
+        )
+      }
+
+      if (Array.isArray(operations[key])) {
+        acc[key] = or(...operations[key])
+      }
+
+      return acc
+    },
+    {},
   )
 }

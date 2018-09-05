@@ -47,15 +47,3 @@ export const extractOperationsName = (schema: GraphQLSchema) => {
     { Query: {}, Mutation: {} },
   )
 }
-
-// https://stackoverflow.com/a/43849204
-export const setObjectPath = (object, path: string, value): object => path
-  .split('.')
-  .reduce(
-    (o, p) => {
-      return o[p] = path.split('.').pop() === p
-        ? value
-        : o[p] || {}
-    },
-    object,
-  )

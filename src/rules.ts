@@ -11,7 +11,7 @@ export const defaultAuthenticatedRule: IPermissionRule = (
   rule({
     cache,
   })(async (_, args, ctx) => {
-    const user = ctx.user || ctx.req.user
+    const user = ctx.user
     if (!user || !user.id) {
       throw new AuthenticationError()
     }
